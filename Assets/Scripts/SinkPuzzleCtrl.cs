@@ -53,7 +53,7 @@ public class SinkPuzzleCtrl : MonoBehaviour
         targetButton.onClick.AddListener(OnTargetButtonClick);
     }
 
-     void Update()
+    void Update()
     {
         // ESC 키로 퍼즐 UI 숨기기
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -83,7 +83,6 @@ public class SinkPuzzleCtrl : MonoBehaviour
         }
     }
 
-
     // 퍼즐 UI 활성화 함수
     void ShowPuzzleUI()
     {
@@ -93,25 +92,17 @@ public class SinkPuzzleCtrl : MonoBehaviour
     // 이미지 변경 함수
     void ChangeImage(int buttonIndex)
     {
-        // 버튼 이미지 랜덤 변경
+        // 클릭 횟수 증가 및 이미지 순환
+        buttonClickState[buttonIndex]++;
+        int imageIndex = buttonClickState[buttonIndex] % images.Length;
+
+        // 버튼 이미지 변경
         Image buttonImage = buttons[buttonIndex].GetComponent<Image>();
         if (buttonImage != null)
         {
-            Sprite newSprite = images[Random.Range(0, images.Length)];
-            buttonImage.sprite = newSprite;
-            buttonSprites[buttonIndex] = newSprite; // 변경된 이미지 추적
+            buttonImage.sprite = images[imageIndex];
+            buttonSprites[buttonIndex] = images[imageIndex]; // 변경된 이미지 추적
         }
-
-        // 버튼 클릭 상태 추적
-        buttonClickState[buttonIndex] = 1;
-
-/*        // 모든 버튼이 클릭되었는지 확인
-        if (CheckSequence())
-        {
-            ShowFinalImage(); // 순서가 맞다면 최종 이미지 표시
-            HidePuzzleUI(); // 퍼즐 UI 숨기기
-            isPuzzleCompleted = true; // 퍼즐 완료 상태로 설정
-        }*/
     }
 
     // 버튼 클릭 시 호출되는 메서드
@@ -132,12 +123,18 @@ public class SinkPuzzleCtrl : MonoBehaviour
     // 클릭된 버튼들이 순서대로 클릭되었는지 확인하는 함수
     bool CheckSequence()
     {
-        if (buttonSprites[0] == images[4] && buttonSprites[1] == images[3] && buttonSprites[2] == images[1]
-            && buttonSprites[3] == images[1] && buttonSprites[4] == images[2])
+        // 정답 시퀀스 정의
+        Sprite[] correctSequence = { images[4], images[3], images[1], images[1], images[2] };
+
+        // 현재 버튼 상태와 정답 시퀀스 비교
+        for (int i = 0; i < correctSequence.Length; i++)
         {
-            return true; // 버튼들이 맞는 이미지를 가지고 있으면 퍼즐 완성
+            if (buttonSprites[i] != correctSequence[i])
+            {
+                return false; // 하나라도 맞지 않으면 정답 아님
+            }
         }
-        return false; // 아니면 false
+        return true; // 모든 이미지가 맞으면 정답 처리
     }
 
     // 최종 이미지를 보여주는 함수

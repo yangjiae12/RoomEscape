@@ -33,15 +33,20 @@ public class TrashPuzzleCtrl : MonoBehaviour
 
     void Start()
     {
-        // 배열 초기화
         buttonClickState = new int[buttons.Length];
         buttonSprites = new Sprite[buttons.Length];
+
+        // 버튼 초기 이미지 설정
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttonSprites[i] = null; // 초기 상태는 비어 있는 이미지로 설정
+        }
 
         // 퍼즐 UI 기본 숨김
         puzzleUI.SetActive(false);
         finalImage.gameObject.SetActive(false);
 
-        // 버튼에 클릭 이벤트 추가
+        // 버튼 클릭 이벤트 추가
         for (int i = 0; i < buttons.Length; i++)
         {
             int index = i; // 로컬 변수로 저장해야 Closure 문제 방지
@@ -52,7 +57,8 @@ public class TrashPuzzleCtrl : MonoBehaviour
         targetButton.onClick.AddListener(OnTargetButtonClick);
     }
 
-     void Update()
+
+    void Update()
     {
         // ESC 키로 퍼즐 UI 숨기기
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -92,18 +98,21 @@ public class TrashPuzzleCtrl : MonoBehaviour
     // 이미지 변경 함수
     void ChangeImage(int buttonIndex)
     {
-        // 버튼 이미지 랜덤 변경
+        // 버튼의 이미지 순서를 관리하기 위한 상태값 증가
+        buttonClickState[buttonIndex]++;
+
+        // 순환적으로 이미지를 설정 (배열 길이를 넘어가면 다시 처음으로 돌아감)
+        int imageIndex = buttonClickState[buttonIndex] % images.Length;
+
+        // 버튼의 이미지 변경
         Image buttonImage = buttons[buttonIndex].GetComponent<Image>();
         if (buttonImage != null)
         {
-            Sprite newSprite = images[Random.Range(0, images.Length)];
-            buttonImage.sprite = newSprite;
-            buttonSprites[buttonIndex] = newSprite; // 변경된 이미지 추적
+            buttonImage.sprite = images[imageIndex];
+            buttonSprites[buttonIndex] = images[imageIndex]; // 변경된 이미지 추적
         }
-
-        // 버튼 클릭 상태 추적
-        buttonClickState[buttonIndex] = 1;
     }
+
 
     // 버튼 클릭 시 호출되는 메서드
     void OnTargetButtonClick()
@@ -123,12 +132,20 @@ public class TrashPuzzleCtrl : MonoBehaviour
     // 클릭된 버튼들이 순서대로 클릭되었는지 확인하는 함수
     bool CheckSequence()
     {
-        if (buttonSprites[0] == images[0] && buttonSprites[1] == images[0] && buttonSprites[2] == images[2])
+        // 정답 시퀀스 정의 (images 배열에서 원하는 정답 순서를 설정)
+        Sprite[] correctSequence = { images[0], images[0], images[2] };
+
+        // 버튼의 현재 이미지와 정답 시퀀스 비교
+        for (int i = 0; i < correctSequence.Length; i++)
         {
-            return true; // 버튼들이 맞는 이미지를 가지고 있으면 퍼즐 완성
+            if (buttonSprites[i] != correctSequence[i])
+            {
+                return false; // 하나라도 맞지 않으면 정답 아님
+            }
         }
-        return false; // 아니면 false
+        return true; // 모든 이미지가 맞으면 정답 처리
     }
+
 
     // 최종 이미지를 보여주는 함수
     void ShowFinalImage()
